@@ -5,6 +5,6 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <string.h>
+#include <errno.h>
 
 #define	CSFIFO	"/tmp/csfifo"
-#define	BUFFERSIZE	80

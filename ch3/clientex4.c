@@ -9,6 +9,7 @@ int main(int argc, char *argv[])
 	char *s_msg;
 	char *cfifo;
 	int fd_fifo;
+	int ret;
 
 	if (argc != 2)
 	{
@@ -23,12 +24,12 @@ int main(int argc, char *argv[])
 	strcat(s_msg, temp);
 	strcat(cfifo, argv[1]);
 	
-	if (mkfifo(cf, 0666) < 0)
+	if (((ret = mkfifo(cfifo, 0666)) < 0) && errno != EEXIST)
 	{
 		printf("fail to mkfifo\n");
 		return 0;
 	}
-	if ((fd_fifo = open(cf, O_RDONLY)) < 0)
+	if ((fd_fifo = open(CSFIFO, O_WRONLY)) < 0)
 	{
 		printf("fail to open fifo\n");
 		return 0;
@@ -43,7 +44,7 @@ int main(int argc, char *argv[])
 	close(fd_fifo);
 	while(1)
 	{
-		if ((fd_fifo = open(cf, O_RDONLY)) < 0)
+		if ((fd_fifo = open(cfifo, O_RDONLY)) < 0)
 		{
 			printf("Fail to open fifo\n");
 			sleep(10);
