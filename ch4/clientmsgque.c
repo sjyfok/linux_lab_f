@@ -1,61 +1,47 @@
-#include "csfifo.h"
+#include <sys/types.h>
+#include <sys/msg.h>
+#include <sys/ipc.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+
+#define	MSGKEY 75
+
+struct msgform {
+	long mytype;
+	char mtext[1000];
+} msg;
 
 
-int main(int argc, char *argv[])
+void client(void)
 {
-	char r_msg[BUFSIZ];
-	char *temp = "client message to server";
-	char *cf = "/tmp/cfifo";
-	char *s_msg;
-	char *cfifo;
-	int fd_fifo;
-	int ret;
-
-	if (argc != 2)
-	{
-		printf("Usage: ./client n\n");
-		return 0;
-	}
-	s_msg = malloc(strlen(temp)+strlen(argv[1])+sizeof(char));
-	cfifo = malloc(strlen(cf)+strlen(argv[1]));
-	strcpy(s_msg, argv[1]);
-	strcpy(cfifo, cf);
-	s_msg[strlen(argv[1])] = '#';
-	strcat(s_msg, temp);
-	strcat(cfifo, argv[1]);
+	int flag =  IPC_CREAT |  0666;
+	int msg_id, i;
 	
-	if (((ret = mkfifo(cfifo, 0666)) < 0) && errno != EEXIST)
+	msg_id = msgget(MSGKEY, flag);
+	if (msg_id < 0)
 	{
-		printf("fail to mkfifo\n");
-		return 0;
+		perror("msgget: ");
+		exit(1);
 	}
-	if ((fd_fifo = open(CSFIFO, O_WRONLY)) < 0)
+	for (i = 10; i >= 1; i --)
 	{
-		printf("fail to open fifo\n");
-		return 0;
+		msg.mytype = i;
+		strcpy(msg.mtext, "hello");
+		printf("(client)send\n");
+		msgsnd(msg_id, &msg, sizeof(msg.mtext), 0);
 	}
-	if (write(fd_fifo, s_msg, strlen(s_msg)) < 0)
+	exit(0);
+	/*if (msgctl(msg_id, IPC_RMID, NULL) < 0)
 	{
-		printf("Fail to write fifo\n");
-		return 1;
+		perror("rm smg");
+		exit(1);
 	}
-	printf("Success to wirte fifo\n");
+	exit(0);*/
+}
 
-	close(fd_fifo);
-	while(1)
-	{
-		if ((fd_fifo = open(cfifo, O_RDONLY)) < 0)
-		{
-			printf("Fail to open fifo\n");
-			sleep(10);
-			continue;
-		}
-		if (read(fd_fifo, r_msg, BUFSIZ) < 0)
-		{
-			printf("Fail to read form fifo\n");
-			return 1;
-		}
-		printf("r_msg: %s\n", r_msg);
-		return 0;
-	}
+int main(void)
+{
+	client();
+	return 0;
 }
