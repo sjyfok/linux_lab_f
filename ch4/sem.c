@@ -31,9 +31,9 @@ int main(void)
 	set = mmap(NULL, sizeof(int), PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
 	get = mmap(NULL, sizeof(int), PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
 
-	fullid = semget(100, 1, IPC_CREAT);
-	emptyid = semget(101, 1, IPC_CREAT);
-	mutxid = semget(102, 1, IPC_CREAT);
+	fullid = semget(IPC_PRIVATE, 1, IPC_CREAT|0666);
+	emptyid = semget(IPC_PRIVATE, 1, IPC_CREAT|0666);
+	mutxid = semget(IPC_PRIVATE, 1, IPC_CREAT|0666);
 	arg.val = 0;
 	if (semctl(fullid, 0, SETVAL, arg) == -1)
 	{
@@ -76,6 +76,9 @@ int main(void)
 			i ++;
 			sleep(1);
 		}
+		semop(mutxid, &V, 1);
+		semop(fullid, &V, 1);
+	//	sleep(10);
 		printf("product is exit\n");
 		exit(0);
 	}
@@ -99,11 +102,11 @@ int main(void)
 					(*get) ++;
 					if (*get == 100)
 					{
-						printf("The sum = %d\n", sum);
+						printf("The sum = %d\n", *sum);
 					}
 					semop(mutxid, &V, 1);
 					semop(emptyid, &V, 1);
-					sleep(1);
+					sleep(3);
 				}
 				semop(mutxid, &V, 1);
 				semop(emptyid, &V, 1);
@@ -130,7 +133,7 @@ int main(void)
 								printf("sum = %d\n", *sum);
 							semop(emptyid, &V, 1);
 							semop(mutxid, &V, 1);
-							sleep(1);
+							sleep(3);
 						}
 						semop(mutxid, &V, 1);
 						semop(emptyid, &V, 1);
