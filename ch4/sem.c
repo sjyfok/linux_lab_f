@@ -9,6 +9,7 @@
 #include <stdlib.h>
 
 #define	MAXSEM	5
+#define NUM		10
 
 int fullid;
 int emptyid;
@@ -64,7 +65,7 @@ int main(void)
 	if (pid == 0)
 	{
 		int i = 0;
-		while (i < 100)
+		while (i < NUM)
 		{
 			semop(emptyid, &P, 1);
 			semop(mutxid, &P, 1);
@@ -78,8 +79,9 @@ int main(void)
 		}
 		semop(mutxid, &V, 1);
 		semop(fullid, &V, 1);
-	//	sleep(10);
+	sleep(10);
 		printf("product is exit\n");
+	//	while(1);
 		exit(0);
 	}
 	else
@@ -93,14 +95,14 @@ int main(void)
 				{
 					semop(fullid, &P, 1);
 					semop(mutxid, &P, 1);
-					if (*get  == 100)
+					if (*get  == NUM)
 					{
 						break;
 					}
 					*sum += array[(*get)%MAXSEM];
 					printf("A get number %d\n", array[(*get)%MAXSEM]);
 					(*get) ++;
-					if (*get == 100)
+					if (*get == NUM)
 					{
 						printf("The sum = %d\n", *sum);
 					}
@@ -124,12 +126,12 @@ int main(void)
 						{
 							semop(fullid, &P, 1);
 							semop(mutxid, &P, 1);
-							if (*get == 100)
+							if (*get == NUM)
 								break;
 							*sum += array[(*get)%MAXSEM];
 							printf("B get number %d\n", array[(*get)%MAXSEM]);
 							(*get) ++;
-							if (*get == 100)
+							if (*get == NUM)
 								printf("sum = %d\n", *sum);
 							semop(emptyid, &V, 1);
 							semop(mutxid, &V, 1);
