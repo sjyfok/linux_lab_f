@@ -60,22 +60,46 @@ runcmd(struct cmd *cmd)
     ecmd = (struct execcmd*)cmd;
     if(ecmd->argv[0] == 0)
       exit(0);
-    fprintf(stderr, "exec not implemented\n");
+
     // Your code here ...
+    if (execvp(ecmd->argv[0], &ecmd->argv[1]) < 0)
+    {
+    	perror("execve");
+    }
     break;
 
   case '>':
   case '<':
     rcmd = (struct redircmd*)cmd;
-    fprintf(stderr, "redir not implemented\n");
     // Your code here ...
+    if (dup2(open(rcmd->file, rcmd->mode, 0666) ,rcmd->fd) < 0)
+    {
+    	perror("dup2");
+    }
     runcmd(rcmd->cmd);
     break;
 
   case '|':
     pcmd = (struct pipecmd*)cmd;
-    fprintf(stderr, "pipe not implemented\n");
+    //fprintf(stderr, "pipe not implemented\n");
     // Your code here ...
+		if (pipe(p) < 0)
+		{
+			perror("pipe");
+			exit(-1);
+		}
+		if (fork() > 0)
+		{
+			close(p[0]);
+			dup2(p[1], 1);
+			runcmd(pcmd->left);
+		}
+		else
+		{
+			close(p[1]);
+			dup2(p[0], 0);
+			runcmd(pcmd->right);
+		}
     break;
   }    
   exit(0);
